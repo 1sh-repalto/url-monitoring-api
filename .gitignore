@@ -1,0 +1,17 @@
+# Go build output
+/bin/
+/build/
+/*.exe
+*.test
+*.out
+
+# IDE and system files
+.idea/
+.vscode/
+*.swp
+
+# OS generated files
+.DS_Store
+
+# Environment variables
+.env

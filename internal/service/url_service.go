@@ -1,0 +1,37 @@
+package service
+
+import (
+	"time"
+
+	"github.com/1sh-repalto/url-monitoring-api/internal/model"
+	"github.com/1sh-repalto/url-monitoring-api/internal/repository"
+	"github.com/google/uuid"
+)
+
+type URLService struct {
+	repo repository.URLRepository
+}
+
+func NewURLService (r repository.URLRepository) *URLService {
+	return &URLService{repo: r}
+}
+
+func (s *URLService) RegisterURL (rawUrl, userId  string) error {
+	url := &model.MonitoredURL{
+		ID: uuid.NewString(),
+		URL: rawUrl,
+		UserID: userId,
+		IsActive: true,
+		CreatedAt: time.Now().Format(time.RFC3339),
+	}
+
+	return s.repo.SaveURL(url)
+}
+
+func (s *URLService) GetURLByUser (userID string) ([]* model.MonitoredURL, error) {
+	return s.repo.GetURLByUserID(userID)
+}
+
+func (s *URLService) DeleteURL (urlID string) error {
+	return s.repo.DeleteURL(urlID)
+}
