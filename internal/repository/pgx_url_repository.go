@@ -12,7 +12,7 @@ type pgxURLRepository struct {
 }
 
 func NewPgxURLRepository(db *pgxpool.Pool) *pgxURLRepository {
-	return &pgxURLRepository{db: db}
+	return &pgxURLRepository{db}
 }
 
 func(r *pgxURLRepository) SaveURL(u *model.MonitoredURL) error {

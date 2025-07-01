@@ -1,0 +1,68 @@
+package handler
+
+import (
+	"encoding/json"
+	"net/http"
+
+	"github.com/1sh-repalto/url-monitoring-api/internal/middleware"
+	"github.com/1sh-repalto/url-monitoring-api/internal/service"
+)
+
+type AuthHandler struct {
+	authService *service.AuthService
+}
+
+func NewAuthHandler(authService *service.AuthService) *AuthHandler {
+	return &AuthHandler{authService}
+}
+
+type LoginRequest struct {
+	Email		string	`json:"email"`
+	Password	string	`json:"password"`
+}
+
+func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
+	var req LoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	user, err := h.authService.Login(req.Email, req.Password)
+	if err != nil {
+		http.Error(w, "Invalid email or password", http.StatusUnauthorized)
+		return
+	}
+
+	accessToken, err := middleware.GenerateAccessToken(user.ID)
+	if err != nil {
+		http.Error(w, "Failed to generate access token", http.StatusInternalServerError)
+		return
+	}
+
+	refreshToken, err := middleware.GenerateRefreshToken(user.ID)
+	if err != nil {
+		http.Error(w, "Failed to generate refresh token", http.StatusInternalServerError)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name: "access_token",
+		Value: accessToken,
+		HttpOnly: true,
+		Path: "/",
+		MaxAge: 15 * 60,
+		SameSite: http.SameSiteStrictMode,
+	})
+
+	http.SetCookie(w, &http.Cookie{
+		Name: "refresh_token",
+		Value: refreshToken,
+		HttpOnly: true,
+		Path: "/",
+		MaxAge: 7 * 24 * 60 * 60,
+		SameSite: http.SameSiteStrictMode,
+	})
+
+	json.NewEncoder(w).Encode(map[string]string{"message": "Login successfull"})
+}   
