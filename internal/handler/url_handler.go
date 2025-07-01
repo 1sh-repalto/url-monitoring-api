@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/1sh-repalto/url-monitoring-api/internal/service"
 	"github.com/go-chi/chi/v5"
@@ -18,7 +19,7 @@ func NewURLHandler (s *service.URLService) *URLHandler {
 
 type RegisterURLRequest struct {
 	URL 	string	`json:"url"`
-	UserID	string	`json:"userId"`
+	UserID	int	`json:"userId"`
 }
 
 func (h *URLHandler) Register(w http.ResponseWriter, r *http.Request) {
@@ -34,13 +35,18 @@ func (h *URLHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "URL registered",
+	})
 }
 
 func (h *URLHandler) GetURL(w http.ResponseWriter, r *http.Request) {
-	userID := r.URL.Query().Get("userId")
-	if userID == "" {
-		http.Error(w, "Missing userId", http.StatusBadRequest)
+	userIDStr := r.URL.Query().Get("userId")
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		http.Error(w, "Invalid userId", http.StatusBadRequest)
 		return
 	}
 

@@ -18,7 +18,7 @@ func NewUserRepository(db *pgxpool.Pool) *pgxUserRepository {
 func (r *pgxUserRepository) GetUserByEmail(email string) (*model.User, error) {
 	query := `SELECT id, email, password FROM users WHERE email = $1`
 
-	var user *model.User
+	user := &model.User{}
 
 	err := r.db.QueryRow(context.Background(), query, email).Scan(&user.ID, &user.Email, &user.Password)
 

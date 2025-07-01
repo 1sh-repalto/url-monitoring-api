@@ -1,9 +1,11 @@
 package model
 
+import "time"
+
 type MonitoredURL struct {
 	ID			string
 	URL			string
-	UserID		string
+	UserID		int
 	IsActive	bool
-	CreatedAt	string
+	CreatedAt	time.Time
 }

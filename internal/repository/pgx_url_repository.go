@@ -16,16 +16,16 @@ func NewPgxURLRepository(db *pgxpool.Pool) *pgxURLRepository {
 }
 
 func(r *pgxURLRepository) SaveURL(u *model.MonitoredURL) error {
-	query := `INSERT INTO monitored_urls (id, url, user_id, is_active, created_at)
-			  VALUES ($1, $2, $3, $4, $5)
+	query := `INSERT INTO monitored_urls (id, url, user_id, is_active)
+			  VALUES ($1, $2, $3, $4)
 	`
 
-	_, err := r.db.Exec(context.Background(), query, u.ID, u.URL, u.UserID, u.IsActive, u.CreatedAt)
+	_, err := r.db.Exec(context.Background(), query, u.ID, u.URL, u.UserID, u.IsActive)
 
 	return err
 }
 
-func(r *pgxURLRepository) GetURLByUserID(userID string) ([]*model.MonitoredURL, error) {
+func(r *pgxURLRepository) GetURLByUserID(userID int) ([]*model.MonitoredURL, error) {
 	query := `SELECT id, url, user_id, is_active, created_at
 			  FROM monitored_urls
 			  WHERE user_id = $1
