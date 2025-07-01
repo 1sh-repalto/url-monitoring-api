@@ -15,7 +15,7 @@ func NewUserRepository(db *pgxpool.Pool) *pgxUserRepository {
 	return &pgxUserRepository{db}
 }
 
-func (r *pgxUserRepository) GetByEmail(email string) (*model.User, error) {
+func (r *pgxUserRepository) GetUserByEmail(email string) (*model.User, error) {
 	query := `SELECT id, email, password FROM users WHERE email = $1`
 
 	var user *model.User
@@ -27,4 +27,12 @@ func (r *pgxUserRepository) GetByEmail(email string) (*model.User, error) {
 	}
 
 	return user, nil
+}
+
+func (r *pgxUserRepository) CreateUser(user *model.User) error {
+	query := `INSERT INTO users (email, password) VALUES ($1, $2)`
+
+	_, err := r.db.Exec(context.Background(), query, user.Email, user.Password)
+
+	return err
 }

@@ -28,3 +28,16 @@ func (s* AuthService) Login(email, password string) (*model.User, error) {
 
 	return user, nil
 }
+
+func (s* AuthService) Signup(email, password string) error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	user := &model.User{
+		Email: email,
+		Password: string(hashedPassword),
+	}
+	
+	return s.userRepo.CreateUser(user)
+}
