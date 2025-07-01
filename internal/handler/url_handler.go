@@ -3,8 +3,8 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 
+	"github.com/1sh-repalto/url-monitoring-api/internal/middleware"
 	"github.com/1sh-repalto/url-monitoring-api/internal/service"
 	"github.com/go-chi/chi/v5"
 )
@@ -19,7 +19,6 @@ func NewURLHandler (s *service.URLService) *URLHandler {
 
 type RegisterURLRequest struct {
 	URL 	string	`json:"url"`
-	UserID	int	`json:"userId"`
 }
 
 func (h *URLHandler) Register(w http.ResponseWriter, r *http.Request) {
@@ -29,7 +28,13 @@ func (h *URLHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.service.RegisterURL(req.URL, req.UserID)
+	userID, ok := middleware.GetUserID(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	err := h.service.RegisterURL(req.URL, userID)
 	if err != nil {
 		http.Error(w, "Failed to register URL", http.StatusInternalServerError)
 		return
@@ -43,10 +48,9 @@ func (h *URLHandler) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *URLHandler) GetURL(w http.ResponseWriter, r *http.Request) {
-	userIDStr := r.URL.Query().Get("userId")
-	userID, err := strconv.Atoi(userIDStr)
-	if err != nil {
-		http.Error(w, "Invalid userId", http.StatusBadRequest)
+	userID, ok := middleware.GetUserID(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -64,14 +68,24 @@ func (h *URLHandler) GetURL(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *URLHandler) DeleteURL(w http.ResponseWriter, r *http.Request) {
+	userID, ok := middleware.GetUserID(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	id := chi.URLParam(r, "urlID")
 	if id == "" {
 		http.Error(w, "Missing url ID", http.StatusBadRequest)
 		return
 	}
 
-	err := h.service.DeleteURL(id)
+	err := h.service.DeleteURL(id, userID)
 	if err != nil {
+		if err.Error() == "unauthorized: not the owner of the URL" {
+			http.Error(w, err.Error(), http.StatusForbidden)
+			return
+		}
 		http.Error(w, "Failed to delete url registry", http.StatusInternalServerError)
 		return
 	}

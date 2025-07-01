@@ -58,6 +58,19 @@ func(r *pgxURLRepository) GetURLByUserID(userID int) ([]*model.MonitoredURL, err
 	return urls, nil
 }
 
+func(r *pgxURLRepository) GetURLByID(id string) (*model.MonitoredURL, error) {
+	query := `SELECT id, url, user_id, is_active, created_at FROM monitored_urls WHERE id = $1`
+
+	var url model.MonitoredURL
+	err := r.db.QueryRow(context.Background(), query, id).Scan(&url.ID, &url.URL, &url.UserID, &url.IsActive, &url.CreatedAt)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &url, nil
+}
+
 func(r *pgxURLRepository) DeleteURL(urlID string) error {
 	query := `DELETE FROM monitored_urls WHERE id = $1`
 

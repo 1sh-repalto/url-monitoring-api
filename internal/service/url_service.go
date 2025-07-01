@@ -1,6 +1,8 @@
 package service
 
 import (
+	"errors"
+
 	"github.com/1sh-repalto/url-monitoring-api/internal/model"
 	"github.com/1sh-repalto/url-monitoring-api/internal/repository"
 	"github.com/google/uuid"
@@ -29,6 +31,15 @@ func (s *URLService) GetURLByUser (userID int) ([]* model.MonitoredURL, error) {
 	return s.repo.GetURLByUserID(userID)
 }
 
-func (s *URLService) DeleteURL (urlID string) error {
+func (s *URLService) DeleteURL (urlID string, userID int) error {
+	url, err := s.repo.GetURLByID(urlID)
+	if err != nil {
+		return err
+	}
+	
+	if url.UserID != userID {
+		return errors.New("unauthorized: not the owner of this URL")
+	}
+	
 	return s.repo.DeleteURL(urlID)
 }
