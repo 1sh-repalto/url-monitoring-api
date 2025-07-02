@@ -51,3 +51,11 @@ func (s *URLService) LogURLCheck(log *model.URLLog) error {
 func (s *URLService) GetAllActiveURLs() ([]*model.MonitoredURL, error) {
 	return s.repo.GetAllActiveURLs()
 }
+
+func (s *URLService) GetURLByID(urlID string) (*model.MonitoredURL, error) {
+	return s.repo.GetURLByID(urlID)
+}
+
+func (s *URLService) GetLogsByURLID(urlID string) ([]*model.URLLog, error) {
+	return s.repo.GetLogsByURLID(urlID)
+}

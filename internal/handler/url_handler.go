@@ -92,3 +92,37 @@ func (h *URLHandler) DeleteURL(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (h *URLHandler) GetURLLogs(w http.ResponseWriter, r *http.Request) {
+	userID, ok := middleware.GetUserID(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	urlID := chi.URLParam(r, "urlID")
+	if urlID == "" {
+		http.Error(w, "Missing URL ID", http.StatusNotFound)
+		return
+	}
+	
+	url, err := h.service.GetURLByID(urlID)
+	if err != nil {
+		http.Error(w, "URL not found", http.StatusNotFound)
+		return
+	}
+
+	if url.UserID != userID {
+		http.Error(w, "Forbidded", http.StatusForbidden)
+		return
+	}
+
+	logs, err := h.service.GetLogsByURLID(urlID)
+	if err != nil {
+		http.Error(w, "Failed to fetch logs", http.StatusInternalServerError)
+		return
+	} 
+
+	w.Header().Set("Content-Type", "applciation/json")
+	json.NewEncoder(w).Encode(logs)
+}

@@ -13,6 +13,7 @@ func URLRoutes(urlHandler *handler.URLHandler) chi.Router {
 
 	r.Post("/", urlHandler.Register)
 	r.Get("/", urlHandler.GetURL)
+	r.Get("/{urlID}/logs", urlHandler.GetURLLogs)
 	r.Delete("/{urlID}", urlHandler.DeleteURL)
 
 	return r

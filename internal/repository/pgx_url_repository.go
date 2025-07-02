@@ -111,3 +111,29 @@ func (r *pgxURLRepository) SaveURLLog(log *model.URLLog) error {
 
 	return err
 }
+
+func (r *pgxURLRepository) GetLogsByURLID (urlID string) ([]*model.URLLog, error) {
+	query := `
+		SELECT id, url_id, status_code, response_time_ms, checked_at, is_up
+		FROM url_logs
+		WHERE url_id = $1
+		ORDER BY checked_at DESC
+	`
+
+	rows, err := r.db.Query(context.Background(), query, urlID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var logs []*model.URLLog
+	for rows.Next() {
+		var log model.URLLog
+		err := rows.Scan(&log.ID, &log.URLID, &log.StatusCode, &log.ResponseTimeMs, &log.CheckedAt, &log.IsUp)
+		if err != nil {
+			return nil, err
+		}
+		logs = append(logs, &log)
+	}
+	return logs, rows.Err()
+}
