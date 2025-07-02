@@ -27,11 +27,11 @@ func (s *URLService) RegisterURL (rawUrl string, userId int) error {
 	return s.repo.SaveURL(url)
 }
 
-func (s *URLService) GetURLByUser (userID int) ([]* model.MonitoredURL, error) {
+func (s *URLService) GetURLByUser(userID int) ([]* model.MonitoredURL, error) {
 	return s.repo.GetURLByUserID(userID)
 }
 
-func (s *URLService) DeleteURL (urlID string, userID int) error {
+func (s *URLService) DeleteURL(urlID string, userID int) error {
 	url, err := s.repo.GetURLByID(urlID)
 	if err != nil {
 		return err
@@ -42,4 +42,12 @@ func (s *URLService) DeleteURL (urlID string, userID int) error {
 	}
 	
 	return s.repo.DeleteURL(urlID)
+}
+
+func (s *URLService) LogURLCheck(log *model.URLLog) error {
+	return s.repo.SaveURLLog(log)
+}
+
+func (s *URLService) GetAllActiveURLs() ([]*model.MonitoredURL, error) {
+	return s.repo.GetAllActiveURLs()
 }

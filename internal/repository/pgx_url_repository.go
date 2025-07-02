@@ -78,3 +78,36 @@ func(r *pgxURLRepository) DeleteURL(urlID string) error {
 
 	return err
 }
+
+func(r *pgxURLRepository) GetAllActiveURLs() ([]*model.MonitoredURL, error) {
+	query := `SELECT id, url, user_id, is_active, created_at FROM monitored_urls WHERE is_active = true`
+
+	rows, err := r.db.Query(context.Background(), query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var urls []*model.MonitoredURL
+
+	for rows.Next() {
+		var u model.MonitoredURL
+		if err := rows.Scan(&u.ID, &u.URL, &u.UserID, &u.IsActive, &u.CreatedAt); err != nil {
+			return nil, err
+		}
+		urls = append(urls, &u)
+	}
+
+	return urls, rows.Err()
+}
+
+func(r *pgxURLRepository) SaveURLLog(log *model.URLLog) error {
+	query := `
+		INSERT INTO url_logs (id, url_id, status_code, response_time_ms, checked_at, is_up)
+		VALUES ($1, $2, $3, $4, $5, $6)
+	`
+ 
+	_, err := r.db.Exec(context.Background(), query, log.ID, log.URLID, log.StatusCode, log.ResponseTimeMs, log.CheckedAt, log.IsUp)
+
+	return err
+}

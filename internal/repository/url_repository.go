@@ -7,4 +7,6 @@ type URLRepository interface {
 	GetURLByUserID (userID int) ([]* model.MonitoredURL, error)
 	GetURLByID (id string) (*model.MonitoredURL, error)
 	DeleteURL (id string) error
+	GetAllActiveURLs () ([]* model.MonitoredURL, error)
+	SaveURLLog (log *model.URLLog) error
 }
