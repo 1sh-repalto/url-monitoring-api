@@ -28,6 +28,11 @@ func (h *URLHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.URL == "" {
+		http.Error(w, "URL is required", http.StatusBadRequest)
+		return
+	}
+
 	userID, ok := middleware.GetUserID(r.Context())
 	if !ok {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
