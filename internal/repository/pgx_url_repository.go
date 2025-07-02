@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/1sh-repalto/url-monitoring-api/internal/model"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type pgxURLRepository struct {
@@ -15,7 +15,7 @@ func NewPgxURLRepository(db *pgxpool.Pool) *pgxURLRepository {
 	return &pgxURLRepository{db}
 }
 
-func(r *pgxURLRepository) SaveURL(u *model.MonitoredURL) error {
+func (r *pgxURLRepository) SaveURL(u *model.MonitoredURL) error {
 	query := `INSERT INTO monitored_urls (id, url, user_id, is_active)
 			  VALUES ($1, $2, $3, $4)
 	`
@@ -25,7 +25,7 @@ func(r *pgxURLRepository) SaveURL(u *model.MonitoredURL) error {
 	return err
 }
 
-func(r *pgxURLRepository) GetURLByUserID(userID int) ([]*model.MonitoredURL, error) {
+func (r *pgxURLRepository) GetURLByUserID(userID int) ([]*model.MonitoredURL, error) {
 	query := `SELECT id, url, user_id, is_active, created_at
 			  FROM monitored_urls
 			  WHERE user_id = $1
@@ -58,7 +58,7 @@ func(r *pgxURLRepository) GetURLByUserID(userID int) ([]*model.MonitoredURL, err
 	return urls, nil
 }
 
-func(r *pgxURLRepository) GetURLByID(id string) (*model.MonitoredURL, error) {
+func (r *pgxURLRepository) GetURLByID(id string) (*model.MonitoredURL, error) {
 	query := `SELECT id, url, user_id, is_active, created_at FROM monitored_urls WHERE id = $1`
 
 	var url model.MonitoredURL
@@ -71,7 +71,7 @@ func(r *pgxURLRepository) GetURLByID(id string) (*model.MonitoredURL, error) {
 	return &url, nil
 }
 
-func(r *pgxURLRepository) DeleteURL(urlID string) error {
+func (r *pgxURLRepository) DeleteURL(urlID string) error {
 	query := `DELETE FROM monitored_urls WHERE id = $1`
 
 	_, err := r.db.Exec(context.Background(), query, urlID)
@@ -79,7 +79,7 @@ func(r *pgxURLRepository) DeleteURL(urlID string) error {
 	return err
 }
 
-func(r *pgxURLRepository) GetAllActiveURLs() ([]*model.MonitoredURL, error) {
+func (r *pgxURLRepository) GetAllActiveURLs() ([]*model.MonitoredURL, error) {
 	query := `SELECT id, url, user_id, is_active, created_at FROM monitored_urls WHERE is_active = true`
 
 	rows, err := r.db.Query(context.Background(), query)
@@ -101,12 +101,12 @@ func(r *pgxURLRepository) GetAllActiveURLs() ([]*model.MonitoredURL, error) {
 	return urls, rows.Err()
 }
 
-func(r *pgxURLRepository) SaveURLLog(log *model.URLLog) error {
+func (r *pgxURLRepository) SaveURLLog(log *model.URLLog) error {
 	query := `
 		INSERT INTO url_logs (id, url_id, status_code, response_time_ms, checked_at, is_up)
 		VALUES ($1, $2, $3, $4, $5, $6)
 	`
- 
+
 	_, err := r.db.Exec(context.Background(), query, log.ID, log.URLID, log.StatusCode, log.ResponseTimeMs, log.CheckedAt, log.IsUp)
 
 	return err

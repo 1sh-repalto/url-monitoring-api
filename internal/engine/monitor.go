@@ -10,8 +10,8 @@ import (
 )
 
 type MonitorEngine struct {
-	urlService 	*service.URLService
-	client		*http.Client
+	urlService *service.URLService
+	client     *http.Client
 }
 
 func NewMonitorEngine(s *service.URLService) *MonitorEngine {
@@ -20,6 +20,19 @@ func NewMonitorEngine(s *service.URLService) *MonitorEngine {
 		client: &http.Client{
 			Timeout: 10 * time.Second,
 		},
+	}
+}
+
+func (e *MonitorEngine) Start() {
+	ticker := time.NewTicker(1 * time.Minute)
+	defer ticker.Stop()
+
+	for {
+		<-ticker.C
+		err := e.CheckURLs()
+		if err != nil {
+			// log error here
+		}
 	}
 }
 
@@ -42,10 +55,10 @@ func (e *MonitorEngine) checkAndLog(u *model.MonitoredURL) {
 	duration := time.Since(start)
 
 	log := &model.URLLog{
-		ID:				uuid.NewString(),
-		URLID:			u.ID,
-		ResponseTimeMs:	int(duration.Milliseconds()),
-		CheckedAt: 		time.Now(),
+		ID:             uuid.NewString(),
+		URLID:          u.ID,
+		ResponseTimeMs: int(duration.Milliseconds()),
+		CheckedAt:      time.Now(),
 	}
 
 	if err != nil {
@@ -58,7 +71,7 @@ func (e *MonitorEngine) checkAndLog(u *model.MonitoredURL) {
 	}
 
 	if err := e.urlService.LogURLCheck(log); err != nil {
-		
+
 	}
 
 }

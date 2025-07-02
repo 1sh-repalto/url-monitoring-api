@@ -17,8 +17,8 @@ func NewAuthHandler(authService *service.AuthService) *AuthHandler {
 }
 
 type AuthRequest struct {
-	Email		string	`json:"email"`
-	Password	string	`json:"password"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
@@ -47,26 +47,26 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name: "access_token",
-		Value: accessToken,
+		Name:     "access_token",
+		Value:    accessToken,
 		HttpOnly: true,
-		Path: "/",
-		MaxAge: 15 * 60,
+		Path:     "/",
+		MaxAge:   15 * 60,
 		SameSite: http.SameSiteStrictMode,
 	})
 
 	http.SetCookie(w, &http.Cookie{
-		Name: "refresh_token",
-		Value: refreshToken,
+		Name:     "refresh_token",
+		Value:    refreshToken,
 		HttpOnly: true,
-		Path: "/",
-		MaxAge: 7 * 24 * 60 * 60,
+		Path:     "/",
+		MaxAge:   7 * 24 * 60 * 60,
 		SameSite: http.SameSiteStrictMode,
 	})
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"message": "Login successfull"})
-}   
+}
 
 func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 	var req AuthRequest
@@ -109,11 +109,11 @@ func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name: "access_token",
-		Value: accessToken,
+		Name:     "access_token",
+		Value:    accessToken,
 		HttpOnly: true,
-		Path: "/",
-		MaxAge: 15 * 60,
+		Path:     "/",
+		MaxAge:   15 * 60,
 		SameSite: http.SameSiteStrictMode,
 	})
 
@@ -125,20 +125,20 @@ func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
-		Name: "access_token",
-		Value: "",
+		Name:     "access_token",
+		Value:    "",
 		HttpOnly: true,
-		Path: "/",
-		MaxAge: -1,
+		Path:     "/",
+		MaxAge:   -1,
 		SameSite: http.SameSiteStrictMode,
 	})
 
 	http.SetCookie(w, &http.Cookie{
-		Name: "refresh_token",
-		Value: "",
+		Name:     "refresh_token",
+		Value:    "",
 		HttpOnly: true,
-		Path: "/",
-		MaxAge: -1,
+		Path:     "/",
+		MaxAge:   -1,
 		SameSite: http.SameSiteStrictMode,
 	})
 

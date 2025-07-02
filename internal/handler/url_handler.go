@@ -13,12 +13,12 @@ type URLHandler struct {
 	service *service.URLService
 }
 
-func NewURLHandler (s *service.URLService) *URLHandler {
+func NewURLHandler(s *service.URLService) *URLHandler {
 	return &URLHandler{service: s}
 }
 
 type RegisterURLRequest struct {
-	URL 	string	`json:"url"`
+	URL string `json:"url"`
 }
 
 func (h *URLHandler) Register(w http.ResponseWriter, r *http.Request) {

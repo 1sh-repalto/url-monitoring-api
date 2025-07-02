@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	accessSecret = os.Getenv("access_secret")
+	accessSecret  = os.Getenv("access_secret")
 	refreshSecret = os.Getenv("refresh_secret")
 )
 

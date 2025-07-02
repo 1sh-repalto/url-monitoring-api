@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/1sh-repalto/url-monitoring-api/internal/model"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type pgxUserRepository struct {

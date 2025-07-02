@@ -5,7 +5,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func AuthRoutes (authHandler *handler.AuthHandler) chi.Router {
+func AuthRoutes(authHandler *handler.AuthHandler) chi.Router {
 	r := chi.NewRouter()
 
 	r.Post("/signup", authHandler.Signup)
