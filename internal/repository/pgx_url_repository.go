@@ -25,6 +25,13 @@ func (r *pgxURLRepository) SaveURL(u *model.MonitoredURL) error {
 	return err
 }
 
+func (r *pgxURLRepository) ExistsByUserAndURL(ctx context.Context, url string, userID int) (bool, error) {
+	var exists bool
+	query := `SELECT EXISTS(SELECT 1 FROM monitored_urls WHERE user_id = $1 AND url = $2)`
+	err := r.db.QueryRow(ctx, query, userID, url).Scan(&exists)
+	return exists, err
+}
+
 func (r *pgxURLRepository) GetURLByUserID(userID int) ([]*model.MonitoredURL, error) {
 	query := `SELECT id, url, user_id, is_active, created_at
 			  FROM monitored_urls
@@ -112,7 +119,7 @@ func (r *pgxURLRepository) SaveURLLog(log *model.URLLog) error {
 	return err
 }
 
-func (r *pgxURLRepository) GetLogsByURLID (urlID string) ([]*model.URLLog, error) {
+func (r *pgxURLRepository) GetLogsByURLID(urlID string) ([]*model.URLLog, error) {
 	query := `
 		SELECT id, url_id, status_code, response_time_ms, checked_at, is_up
 		FROM url_logs

@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -31,7 +32,7 @@ func (e *MonitorEngine) Start() {
 		<-ticker.C
 		err := e.CheckURLs()
 		if err != nil {
-			// log error here
+			log.Printf("monitoring error: failed to check URLs: %v", err)
 		}
 	}
 }

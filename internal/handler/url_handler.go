@@ -3,6 +3,8 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/1sh-repalto/url-monitoring-api/internal/middleware"
 	"github.com/1sh-repalto/url-monitoring-api/internal/service"
@@ -33,14 +35,33 @@ func (h *URLHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	parsedURL, err := url.ParseRequestURI(req.URL)
+	if err != nil || parsedURL.Scheme == "" || parsedURL.Host == "" {
+		http.Error(w, "Invalid URL format", http.StatusBadRequest)
+		return
+	}
+
+	normalizedURL := parsedURL.Scheme + "://" + parsedURL.Host + parsedURL.Path
+	if parsedURL.RawQuery != "" {
+		normalizedURL += "?" + parsedURL.RawQuery
+	}
+	if parsedURL.Fragment != "" {
+		normalizedURL += "#" + parsedURL.Fragment
+	}
+	normalizedURL = strings.TrimSuffix(normalizedURL, "/")
+
 	userID, ok := middleware.GetUserID(r.Context())
 	if !ok {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	err := h.service.RegisterURL(req.URL, userID)
+	err = h.service.RegisterURL(normalizedURL, userID)
 	if err != nil {
+		if err.Error() == "URL already registered" {
+			http.Error(w, err.Error(), http.StatusConflict)
+			return
+		}
 		http.Error(w, "Failed to register URL", http.StatusInternalServerError)
 		return
 	}
@@ -62,6 +83,10 @@ func (h *URLHandler) GetURL(w http.ResponseWriter, r *http.Request) {
 	urls, err := h.service.GetURLByUser(userID)
 	if err != nil {
 		http.Error(w, "Failed to get URLs", http.StatusInternalServerError)
+		return
+	}
+	if len(urls) == 0 {
+		json.NewEncoder(w).Encode([]string{})
 		return
 	}
 
@@ -110,7 +135,7 @@ func (h *URLHandler) GetURLLogs(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Missing URL ID", http.StatusNotFound)
 		return
 	}
-	
+
 	url, err := h.service.GetURLByID(urlID)
 	if err != nil {
 		http.Error(w, "URL not found", http.StatusNotFound)
@@ -126,8 +151,12 @@ func (h *URLHandler) GetURLLogs(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "Failed to fetch logs", http.StatusInternalServerError)
 		return
-	} 
+	}
+	if len(logs) == 0 {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
 
-	w.Header().Set("Content-Type", "applciation/json")
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(logs)
 }

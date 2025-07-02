@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 
 	"github.com/1sh-repalto/url-monitoring-api/internal/model"
@@ -22,6 +23,14 @@ func (s *URLService) RegisterURL(rawUrl string, userId int) error {
 		URL:      rawUrl,
 		UserID:   userId,
 		IsActive: true,
+	}
+
+	exists, err := s.repo.ExistsByUserAndURL(context.Background(), rawUrl, userId)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return errors.New("URL already registered")
 	}
 
 	return s.repo.SaveURL(url)
