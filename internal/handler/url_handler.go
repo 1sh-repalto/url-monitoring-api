@@ -2,9 +2,11 @@ package handler
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/1sh-repalto/url-monitoring-api/internal/middleware"
 	"github.com/1sh-repalto/url-monitoring-api/internal/service"
@@ -41,6 +43,11 @@ func (h *URLHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if strings.Contains(parsedURL.Host, "localhost") || strings.HasPrefix(parsedURL.Host, "127.") {
+		http.Error(w, "Localhost URLs are not allowed", http.StatusBadRequest)
+		return
+	}
+
 	normalizedURL := parsedURL.Scheme + "://" + parsedURL.Host + parsedURL.Path
 	if parsedURL.RawQuery != "" {
 		normalizedURL += "?" + parsedURL.RawQuery
@@ -56,13 +63,28 @@ func (h *URLHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	client := http.Client{Timeout: 5 * time.Second}
+	resp, err := client.Get(normalizedURL)
+	if err != nil {
+		log.Printf("URL ping failed: %s, error: %v", normalizedURL, err)
+		http.Error(w, "URL is unreachable", http.StatusBadRequest)
+		return
+}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		log.Printf("URL ping returned bad status: %s, status: %v", normalizedURL, resp.StatusCode)
+		http.Error(w, "URL returned an error status", http.StatusBadRequest)
+		return
+	}
+
 	err = h.service.RegisterURL(normalizedURL, userID)
 	if err != nil {
 		if err.Error() == "URL already registered" {
 			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
-		http.Error(w, "Failed to register URL", http.StatusInternalServerError)
+		http.Error(w, "Internal server error while registering URL", http.StatusInternalServerError)
 		return
 	}
 
@@ -82,7 +104,7 @@ func (h *URLHandler) GetURL(w http.ResponseWriter, r *http.Request) {
 
 	urls, err := h.service.GetURLByUser(userID)
 	if err != nil {
-		http.Error(w, "Failed to get URLs", http.StatusInternalServerError)
+		http.Error(w, "Internal server error while retrieving URLs", http.StatusInternalServerError)
 		return
 	}
 	if len(urls) == 0 {
@@ -143,7 +165,7 @@ func (h *URLHandler) GetURLLogs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if url.UserID != userID {
-		http.Error(w, "Forbidded", http.StatusForbidden)
+		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 
@@ -153,7 +175,8 @@ func (h *URLHandler) GetURLLogs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if len(logs) == 0 {
-		w.WriteHeader(http.StatusNoContent)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode([]string{})
 		return
 	}
 

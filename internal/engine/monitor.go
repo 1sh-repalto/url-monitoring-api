@@ -55,24 +55,23 @@ func (e *MonitorEngine) checkAndLog(u *model.MonitoredURL) {
 	resp, err := e.client.Get(u.URL)
 	duration := time.Since(start)
 
-	log := &model.URLLog{
+	urlLog := &model.URLLog{
 		ID:             uuid.NewString(),
 		URLID:          u.ID,
 		ResponseTimeMs: int(duration.Milliseconds()),
-		CheckedAt:      time.Now(),
+		CheckedAt:      time.Now().UTC(),
 	}
 
 	if err != nil {
-		log.StatusCode = 0
-		log.IsUp = false
+		urlLog.StatusCode = 0
+		urlLog.IsUp = false
 	} else {
 		defer resp.Body.Close()
-		log.StatusCode = resp.StatusCode
-		log.IsUp = resp.StatusCode >= 200 && resp.StatusCode < 400
+		urlLog.StatusCode = resp.StatusCode
+		urlLog.IsUp = resp.StatusCode >= 200 && resp.StatusCode < 400
 	}
 
-	if err := e.urlService.LogURLCheck(log); err != nil {
-
+	if err := e.urlService.LogURLCheck(urlLog); err != nil {
+		log.Printf("Failed to log URL check for %s: %v", u.URL, err)
 	}
-
 }
