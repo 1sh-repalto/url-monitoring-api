@@ -29,7 +29,7 @@ func GenerateAccessToken(userID int) (string, error) {
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(accessSecret)
+	return token.SignedString([]byte(accessSecret))
 }
 
 func GenerateRefreshToken(userID int) (string, error) {
@@ -40,12 +40,12 @@ func GenerateRefreshToken(userID int) (string, error) {
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(refreshSecret)
+	return token.SignedString([]byte(refreshSecret))
 }
 
 func ValidateAccessToken(accessToken string) (*model.JWTClaims, error) {
 	token, err := jwt.ParseWithClaims(accessToken, &model.JWTClaims{}, func(t *jwt.Token) (interface{}, error) {
-		return accessSecret, nil
+		return []byte(accessSecret), nil
 	})
 
 	if err != nil || !token.Valid {
@@ -59,9 +59,9 @@ func ValidateAccessToken(accessToken string) (*model.JWTClaims, error) {
 	return claims, nil
 }
 
-func ValidateRefreshToken(refresToken string) (*model.JWTClaims, error) {
-	token, err := jwt.ParseWithClaims(refresToken, &model.JWTClaims{}, func(t *jwt.Token) (interface{}, error) {
-		return refreshSecret, nil
+func ValidateRefreshToken(refreshToken string) (*model.JWTClaims, error) {
+	token, err := jwt.ParseWithClaims(refreshToken, &model.JWTClaims{}, func(t *jwt.Token) (interface{}, error) {
+		return []byte(refreshSecret), nil
 	})
 
 	if err != nil || !token.Valid {

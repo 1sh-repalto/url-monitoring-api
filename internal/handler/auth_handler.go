@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"regexp"
 
 	"github.com/1sh-repalto/url-monitoring-api/internal/middleware"
 	"github.com/1sh-repalto/url-monitoring-api/internal/service"
@@ -21,10 +22,22 @@ type AuthRequest struct {
 	Password string `json:"password"`
 }
 
+var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
+
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req AuthRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	if req.Email == "" || req.Password == "" {
+		http.Error(w, "Email and password are required", http.StatusBadRequest)
+		return
+	}
+
+	if !emailRegex.MatchString(req.Email) {
+		http.Error(w, "Invalid email format", http.StatusBadRequest)
 		return
 	}
 
@@ -73,6 +86,16 @@ func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	if req.Email == "" || req.Password == "" {
+		http.Error(w, "Email and password are required", http.StatusBadRequest)
+		return
+	}
+
+	if !emailRegex.MatchString(req.Email) {
+		http.Error(w, "Invalid email format", http.StatusBadRequest)
 		return
 	}
 
