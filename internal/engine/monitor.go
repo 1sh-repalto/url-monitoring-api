@@ -3,8 +3,11 @@ package engine
 import (
 	"log"
 	"net/http"
+	"net/url"
+	"strconv"
 	"time"
 
+	"github.com/1sh-repalto/url-monitoring-api/internal/metrics"
 	"github.com/1sh-repalto/url-monitoring-api/internal/model"
 	"github.com/1sh-repalto/url-monitoring-api/internal/service"
 	"github.com/google/uuid"
@@ -62,16 +65,38 @@ func (e *MonitorEngine) checkAndLog(u *model.MonitoredURL) {
 		CheckedAt:      time.Now().UTC(),
 	}
 
+	hostname := extractHostname(u.URL)
+
+	metrics.TotalChecks.Inc()
+
+	metrics.ResponseTime.WithLabelValues(u.ID, hostname).Observe(float64(duration.Milliseconds()))
+
 	if err != nil {
 		urlLog.StatusCode = 0
 		urlLog.IsUp = false
+
+		metrics.FailedChecks.Inc()
 	} else {
 		defer resp.Body.Close()
 		urlLog.StatusCode = resp.StatusCode
 		urlLog.IsUp = resp.StatusCode >= 200 && resp.StatusCode < 400
+
+		metrics.CheckStatus.WithLabelValues(strconv.Itoa(resp.StatusCode)).Inc()
+
+		if !urlLog.IsUp {
+			metrics.FailedChecks.Inc()
+		}
 	}
 
 	if err := e.urlService.LogURLCheck(urlLog); err != nil {
 		log.Printf("Failed to log URL check for %s: %v", u.URL, err)
 	}
+}
+
+func extractHostname(raw string) string {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return "invalid"
+	}
+	return u.Hostname()
 }

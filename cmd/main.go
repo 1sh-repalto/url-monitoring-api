@@ -11,12 +11,16 @@ import (
 	"github.com/1sh-repalto/url-monitoring-api/internal/repository"
 	"github.com/1sh-repalto/url-monitoring-api/internal/router"
 	"github.com/1sh-repalto/url-monitoring-api/internal/service"
+	"github.com/1sh-repalto/url-monitoring-api/internal/metrics"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )
 
 func main() {
 	_ = godotenv.Load()
+
+	// initialize prometheus metric collection
+	metrics.Init()
 
 	dbpool, err := pgxpool.New(context.Background(), os.Getenv("DB_URL"))
 	if err != nil {
