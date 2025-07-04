@@ -2,22 +2,27 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/1sh-repalto/url-monitoring-api/internal/engine"
 	"github.com/1sh-repalto/url-monitoring-api/internal/handler"
+	"github.com/1sh-repalto/url-monitoring-api/internal/metrics"
 	"github.com/1sh-repalto/url-monitoring-api/internal/repository"
 	"github.com/1sh-repalto/url-monitoring-api/internal/router"
 	"github.com/1sh-repalto/url-monitoring-api/internal/service"
-	"github.com/1sh-repalto/url-monitoring-api/internal/metrics"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )
 
 func main() {
-	_ = godotenv.Load()
+	if os.Getenv("ENV") != "production" {
+		if err := godotenv.Load(".env"); err != nil {
+			log.Println("No .env file found")
+		}
+	}
 
 	// initialize prometheus metric collection
 	metrics.Init()
@@ -27,6 +32,8 @@ func main() {
 		log.Fatal("Failed to connect to DB: ", err)
 	}
 	defer dbpool.Close()
+	fmt.Println("Connected to:", os.Getenv("DB_URL"))
+
 
 	// Initialize repositories
 	userRepo := repository.NewUserRepository(dbpool)

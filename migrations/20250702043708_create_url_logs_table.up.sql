@@ -1,4 +1,4 @@
-CREATE TABLE url_logs (
+CREATE TABLE IF NOT EXISTS url_logs (
     id UUID PRIMARY KEY,
     url_id UUID REFERENCES monitored_urls(id) ON DELETE CASCADE,
     status_code INT NOT NULL,

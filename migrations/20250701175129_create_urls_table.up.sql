@@ -1,4 +1,4 @@
-CREATE TABLE monitored_urls(
+CREATE TABLE IF NOT EXISTS monitored_urls(
     id UUID PRIMARY KEY,
     url TEXT NOT NULL,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
