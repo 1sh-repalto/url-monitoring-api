@@ -24,9 +24,6 @@ func main() {
 		}
 	}
 
-	// initialize prometheus metric collection
-	metrics.Init()
-
 	dbpool, err := pgxpool.New(context.Background(), os.Getenv("DB_URL"))
 	if err != nil {
 		log.Fatal("Failed to connect to DB: ", err)
