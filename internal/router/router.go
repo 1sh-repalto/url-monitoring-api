@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/1sh-repalto/url-monitoring-api/internal/handler"
+	"github.com/1sh-repalto/url-monitoring-api/internal/metrics"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -16,6 +17,8 @@ func SetupRoutes(authHandler *handler.AuthHandler, urlHandler *handler.URLHandle
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("OK"))
 	})
+
+	r.Handle("/metrics", metrics.Handler())
 
 	r.Mount("/auth", AuthRoutes(authHandler))
 	r.Mount("/urls", URLRoutes(urlHandler))

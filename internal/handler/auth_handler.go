@@ -3,7 +3,6 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
-	"os"
 	"regexp"
 
 	"github.com/1sh-repalto/url-monitoring-api/internal/middleware"
@@ -66,8 +65,8 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 		Path:     "/",
 		MaxAge:   15 * 60,
-		Secure: os.Getenv("ENV") == "production",
-		SameSite: http.SameSiteStrictMode,
+		Secure:		false,
+		SameSite: http.SameSiteLaxMode,
 	})
 
 	http.SetCookie(w, &http.Cookie{
@@ -76,8 +75,8 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 		Path:     "/",
 		MaxAge:   7 * 24 * 60 * 60,
-		Secure: os.Getenv("ENV") == "production",
-		SameSite: http.SameSiteStrictMode,
+		Secure: false,
+		SameSite: http.SameSiteLaxMode,
 	})
 
 	w.Header().Set("Content-Type", "application/json")
@@ -140,8 +139,8 @@ func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 		Path:     "/",
 		MaxAge:   15 * 60,
-		Secure: os.Getenv("ENV") == "production",
-		SameSite: http.SameSiteStrictMode,
+		Secure: false,
+		SameSite: http.SameSiteLaxMode,
 	})
 
 	w.Header().Set("Content-Type", "application/json")
@@ -157,8 +156,8 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 		Path:     "/",
 		MaxAge:   -1,
-		Secure: os.Getenv("ENV") == "production",
-		SameSite: http.SameSiteStrictMode,
+		Secure: false,
+		SameSite: http.SameSiteLaxMode,
 	})
 
 	http.SetCookie(w, &http.Cookie{
@@ -167,8 +166,8 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 		Path:     "/",
 		MaxAge:   -1,
-		Secure: os.Getenv("ENV") == "production",
-		SameSite: http.SameSiteStrictMode,
+		Secure: false,
+		SameSite: http.SameSiteLaxMode,
 	})
 
 	w.Header().Set("Content-Type", "application/json")
