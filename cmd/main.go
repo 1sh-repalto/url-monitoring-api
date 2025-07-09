@@ -9,7 +9,6 @@ import (
 
 	"github.com/1sh-repalto/url-monitoring-api/internal/engine"
 	"github.com/1sh-repalto/url-monitoring-api/internal/handler"
-	"github.com/1sh-repalto/url-monitoring-api/internal/metrics"
 	"github.com/1sh-repalto/url-monitoring-api/internal/repository"
 	"github.com/1sh-repalto/url-monitoring-api/internal/router"
 	"github.com/1sh-repalto/url-monitoring-api/internal/service"
