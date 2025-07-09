@@ -3,6 +3,7 @@ package engine
 import (
 	"log"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 
@@ -21,7 +22,7 @@ func NewMonitorEngine(s *service.URLService) *MonitorEngine {
 	return &MonitorEngine{
 		urlService: s,
 		client: &http.Client{
-			Timeout: 10 * time.Second, // Timeout per request
+			Timeout: 10 * time.Second,
 		},
 	}
 }
@@ -32,7 +33,7 @@ func (e *MonitorEngine) Start() {
 
 	for {
 		<-ticker.C
-		metrics.ResetCycleMetrics() // 🔁 Reset metrics at start of each cycle
+		metrics.ResetCycleMetrics()
 
 		if err := e.CheckURLs(); err != nil {
 			log.Printf("monitoring error: failed to check URLs: %v", err)
@@ -40,61 +41,87 @@ func (e *MonitorEngine) Start() {
 	}
 }
 
-
 func (e *MonitorEngine) CheckURLs() error {
 	urls, err := e.urlService.GetAllActiveURLs()
 	if err != nil {
 		return err
 	}
 
-	var wg sync.WaitGroup
+	var (
+		wg            sync.WaitGroup
+		userCheckMap  = make(map[string]int)
+		userFailMap   = make(map[string]int)
+		mapMutex      sync.Mutex
+	)
+
 	for _, u := range urls {
 		wg.Add(1)
 		go func(u *model.MonitoredURL) {
 			defer wg.Done()
-			e.checkAndLog(u)
+
+			start := time.Now()
+			resp, err := e.client.Get(u.URL)
+			duration := time.Since(start)
+			userID := strconv.Itoa(u.UserID)
+
+			// Lock to safely update maps
+			mapMutex.Lock()
+			userCheckMap[userID]++
+			mapMutex.Unlock()
+
+			metrics.ResponseTimeGaugeVec.WithLabelValues(userID, u.ID, u.URL).Set(float64(duration.Milliseconds()))
+
+			urlLog := &model.URLLog{
+				ID:             uuid.NewString(),
+				URLID:          u.ID,
+				ResponseTimeMs: int(duration.Milliseconds()),
+				CheckedAt:      time.Now().UTC(),
+			}
+
+			if err != nil {
+				urlLog.StatusCode = 0
+				urlLog.IsUp = false
+
+				mapMutex.Lock()
+				userFailMap[userID]++
+				mapMutex.Unlock()
+
+				metrics.StatusCodeGaugeVec.WithLabelValues(userID, u.ID, u.URL).Set(0)
+			} else {
+				defer resp.Body.Close()
+				urlLog.StatusCode = resp.StatusCode
+				urlLog.IsUp = resp.StatusCode >= 200 && resp.StatusCode < 400
+
+				metrics.StatusCodeGaugeVec.WithLabelValues(userID, u.ID, u.URL).Set(float64(resp.StatusCode))
+
+				if !urlLog.IsUp {
+					mapMutex.Lock()
+					userFailMap[userID]++
+					mapMutex.Unlock()
+				}
+			}
+
+			if err := e.urlService.LogURLCheck(urlLog); err != nil {
+				log.Printf("failed to log URL check for %s: %v", u.URL, err)
+			}
 		}(u)
 	}
+
 	wg.Wait()
+
+	// Set metrics after all URLs are checked
+	for userID, count := range userCheckMap {
+		metrics.TotalChecksPerCycle.WithLabelValues(userID).Set(float64(count))
+	}
+	for userID, count := range userFailMap {
+		metrics.FailedChecksPerCycle.WithLabelValues(userID).Set(float64(count))
+	}
+
+	for userID := range userCheckMap {
+    if _, ok := userFailMap[userID]; !ok {
+        metrics.FailedChecksPerCycle.WithLabelValues(userID).Set(0)
+    }
+}
+
 	return nil
 }
-
-func (e *MonitorEngine) checkAndLog(u *model.MonitoredURL) {
-	start := time.Now()
-	resp, err := e.client.Get(u.URL)
-	duration := time.Since(start)
-
-	// Count every check
-	metrics.TotalChecksPerCycle.Inc()
-
-	// Report exact response time for this cycle
-	metrics.ResponseTimeGaugeVec.WithLabelValues(u.ID, u.URL).Set(float64(duration.Milliseconds()))
-
-	urlLog := &model.URLLog{
-		ID:             uuid.NewString(),
-		URLID:          u.ID,
-		ResponseTimeMs: int(duration.Milliseconds()),
-		CheckedAt:      time.Now().UTC(),
-	}
-
-	if err != nil {
-		urlLog.StatusCode = 0
-		urlLog.IsUp = false
-
-		metrics.FailedChecksPerCycle.Inc()
-	} else {
-		defer resp.Body.Close()
-		urlLog.StatusCode = resp.StatusCode
-		urlLog.IsUp = resp.StatusCode >= 200 && resp.StatusCode < 400
-
-		if !urlLog.IsUp {
-			metrics.FailedChecksPerCycle.Inc()
-		}
-	}
-
-	if err := e.urlService.LogURLCheck(urlLog); err != nil {
-		log.Printf("failed to log URL check for %s: %v", u.URL, err)
-	}
-}
-
-

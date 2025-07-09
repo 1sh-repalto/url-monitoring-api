@@ -10,39 +10,43 @@ import (
 )
 
 var (
-	// 1. Total checks per cycle
-	TotalChecksPerCycle = promauto.NewGauge(prometheus.GaugeOpts{
+	// 1. Total checks per user per cycle
+	TotalChecksPerCycle = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "url_checks_total",
-		Help: "Total number of URLs checked in the current monitoring cycle",
-	})
+		Help: "Total number of URLs checked in the current monitoring cycle per user",
+	}, []string{"user_id"})
 
-	// 2. Failed checks per cycle
-	FailedChecksPerCycle = promauto.NewGauge(prometheus.GaugeOpts{
+	// 2. Failed checks per user per cycle
+	FailedChecksPerCycle = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "url_checks_failed_total",
-		Help: "Number of failed URL checks in the current monitoring cycle",
-	})
+		Help: "Number of failed URL checks in the current monitoring cycle per user",
+	}, []string{"user_id"})
 
-	// 3. Actual response time per URL (non-averaged, per cycle)
+	// 3. Response time per URL per user
 	ResponseTimeGaugeVec = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "url_response_time_ms",
-		Help: "Response time in milliseconds per URL in the current monitoring cycle",
-	}, []string{"url_id", "host"})
+		Help: "Response time in milliseconds per URL in the current monitoring cycle per user",
+	}, []string{"user_id", "url_id", "host"})
+	
+	// Add this new metric
+	StatusCodeGaugeVec = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "url_last_status_code",
+		Help: "HTTP status code of the last check per URL per user",
+	}, []string{"user_id", "url_id", "host"})
 
-	// For reset protection (optional, Prometheus is single-threaded for metrics but safe practice)
 	metricsMu sync.Mutex
 )
 
-// Reset all per-cycle gauges (called at start of each monitoring cycle)
 func ResetCycleMetrics() {
 	metricsMu.Lock()
 	defer metricsMu.Unlock()
 
-	TotalChecksPerCycle.Set(0)
-	FailedChecksPerCycle.Set(0)
+	TotalChecksPerCycle.Reset()
+	FailedChecksPerCycle.Reset()
 	ResponseTimeGaugeVec.Reset()
+	StatusCodeGaugeVec.Reset()
 }
 
-// Register the Prometheus HTTP handler
 func Handler() http.Handler {
 	return promhttp.Handler()
 }
