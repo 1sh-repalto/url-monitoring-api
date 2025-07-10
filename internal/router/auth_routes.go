@@ -10,7 +10,7 @@ func AuthRoutes(authHandler *handler.AuthHandler) chi.Router {
 
 	r.Post("/signup", authHandler.Signup)
 	r.Post("/login", authHandler.Login)
-	r.Post("/refresh", authHandler.Refresh)
+	r.Get("/refresh", authHandler.Refresh)
 	r.Post("/logout", authHandler.Logout)
 
 	return r

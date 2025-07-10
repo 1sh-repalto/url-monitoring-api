@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -28,8 +27,6 @@ func main() {
 		log.Fatal("Failed to connect to DB: ", err)
 	}
 	defer dbpool.Close()
-	fmt.Println("Connected to:", os.Getenv("DB_URL"))
-
 
 	// Initialize repositories
 	userRepo := repository.NewUserRepository(dbpool)
@@ -50,6 +47,9 @@ func main() {
 	// Setup router
 	r := router.SetupRoutes(authHandler, urlHandler)
 
-	log.Println("Server started on :3000")
-	http.ListenAndServe(":3000", r)
+	log.Println("Server starting on :3000")
+	if err := http.ListenAndServe(":3000", r); err != nil {
+		log.Fatalf("server error: %v", err)
+	}
+
 }
