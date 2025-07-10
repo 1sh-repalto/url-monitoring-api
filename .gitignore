@@ -16,3 +16,7 @@
 # Environment variables
 .env
 .env.prod
+
+# Node
+frontend/node_modules
+frontend/dist
