@@ -64,7 +64,6 @@ func (e *MonitorEngine) CheckURLs() error {
 			duration := time.Since(start)
 			userID := strconv.Itoa(u.UserID)
 
-			// Lock to safely update maps
 			mapMutex.Lock()
 			userCheckMap[userID]++
 			mapMutex.Unlock()
@@ -109,7 +108,6 @@ func (e *MonitorEngine) CheckURLs() error {
 
 	wg.Wait()
 
-	// Set metrics after all URLs are checked
 	for userID, count := range userCheckMap {
 		metrics.TotalChecksPerCycle.WithLabelValues(userID).Set(float64(count))
 	}

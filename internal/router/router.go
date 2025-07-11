@@ -17,9 +17,9 @@ func SetupRoutes(authHandler *handler.AuthHandler, urlHandler *handler.URLHandle
 		AllowedOrigins:   []string{"http://localhost:5173"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		ExposedHeaders:   []string{"Link"},   // optional
+		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
-		MaxAge:           300,                // 5 minutes cache for pre‑flight
+		MaxAge:           300,
 	}))
 
 

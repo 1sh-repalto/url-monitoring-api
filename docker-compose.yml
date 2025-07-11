@@ -12,17 +12,17 @@ services:
       - ".env.prod"
     restart: unless-stopped
 
-  postgres:
-    image: postgres:15
-    container_name: postgres
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: urlmonitor
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: url_monitoring_fronnted
+    ports: 
+      - "5173:80"
     networks:
       - monitor-net
+    depends_on:
+      - api
 
   prometheus:
     image: prom/prometheus

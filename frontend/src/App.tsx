@@ -12,18 +12,16 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
-        {/* Protected routes */}
         <Route element={<Protected />}>
           <Route
             element={
               <>
                 <TopBar />
-                <Outlet /> {/* children pages render here */}
+                <Outlet /> 
               </>
             }
           >
             <Route path="/" element={<Dashboard />} />
-            {/* add other protected routes here */}
           </Route>
         </Route>
       </Routes>

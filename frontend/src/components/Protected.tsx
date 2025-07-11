@@ -6,9 +6,10 @@ export default function Protected() {
   const [ok, setOk] = useState<null | boolean>(null);
 
   useEffect(() => {
-    api.get("/auth/refresh")
-       .then(() => setOk(true))
-       .catch(() => setOk(false));
+    api
+      .get("/auth/refresh")
+      .then(() => setOk(true))
+      .catch(() => setOk(false));
   }, []);
 
   if (ok === null) return <div className="p-8">Loading…</div>;

@@ -1,9 +1,14 @@
 import { useState } from "react";
 import { useUrls, useAddUrl, useDeleteUrl } from "../hooks/useURLs";
 import { Trash2 } from "lucide-react";
+import GrafanaLink from "../components/GrafanaLink";
+import LogsModal from "../components/LogsModal";
 
 export default function Dashboard() {
   const { data: urls = [], isLoading } = useUrls();
+  const [openUrl, setOpenUrl] = useState<{ id: string; url: string } | null>(
+    null
+  );
   const addUrl = useAddUrl();
   const delUrl = useDeleteUrl();
 
@@ -25,7 +30,7 @@ export default function Dashboard() {
           className="flex-1 border p-2 rounded"
           placeholder="https://example.com"
           value={input}
-          onChange={e => setInput(e.target.value)}
+          onChange={(e) => setInput(e.target.value)}
         />
         <button
           className="bg-blue-600 text-white px-4 rounded disabled:opacity-50"
@@ -34,6 +39,9 @@ export default function Dashboard() {
           {addUrl.isPending ? "Adding…" : "Add"}
         </button>
       </form>
+      <div className="my-8">
+        <GrafanaLink />
+      </div>
 
       {isLoading ? (
         <p>Loading…</p>
@@ -46,7 +54,12 @@ export default function Dashboard() {
               key={u.id}
               className="flex items-center justify-between p-3 border rounded-lg"
             >
-              <span className="break-all">{u.url}</span>
+              <button
+                onClick={() => setOpenUrl({ id: u.id, url: u.url })}
+                className="text-left flex-1 break-all hover:underline"
+              >
+                {u.url}
+              </button>
 
               <button
                 onClick={() => delUrl.mutate(u.id)}
@@ -57,6 +70,13 @@ export default function Dashboard() {
             </li>
           ))}
         </ul>
+      )}
+      {openUrl && (
+        <LogsModal
+          urlId={openUrl.id}
+          url={openUrl.url}
+          onClose={() => setOpenUrl(null)}
+        />
       )}
     </div>
   );
