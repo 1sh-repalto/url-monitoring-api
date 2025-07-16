@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useUrls, useAddUrl, useDeleteUrl } from "../hooks/useURLs";
 import { Trash2 } from "lucide-react";
-import GrafanaLink from "../components/GrafanaLink";
 import LogsModal from "../components/LogsModal";
 
 export default function Dashboard() {
@@ -39,9 +38,6 @@ export default function Dashboard() {
           {addUrl.isPending ? "Adding…" : "Add"}
         </button>
       </form>
-      <div className="my-8">
-        <GrafanaLink />
-      </div>
 
       {isLoading ? (
         <p>Loading…</p>
