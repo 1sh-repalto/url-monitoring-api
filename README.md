@@ -8,9 +8,3 @@ A production-grade URL monitoring backend built in Go using Clean Architecture, 
 - Clean layered architecture
 - PostgreSQL + pgx
 - RESTful endpoints
-
-## TODO
-
-- Add authentication
-- Add Prometheus metrics
-- Add Jaeger tracing
